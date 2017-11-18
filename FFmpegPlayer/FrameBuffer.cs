@@ -8,7 +8,7 @@ namespace FFmpegPlayer
 {
     class FrameBuffer
     {
-        Queue<VideoFrame> videoFrameQueue;
-        Queue<AudioFrame> audioFrameQueue;
+        private int frame_rate;
+        private Queue<VideoFrame> video_frame_queue;
     }
 }
