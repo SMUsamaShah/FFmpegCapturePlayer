@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace FFmpegPlayer.Properties
+namespace AdDetectVideoPlayer.Properties
 {
 
 

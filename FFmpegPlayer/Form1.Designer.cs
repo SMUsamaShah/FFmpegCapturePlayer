@@ -1,4 +1,4 @@
-﻿namespace FFmpegPlayer
+﻿namespace AdDetectVideoPlayer
 {
     partial class Form1
     {
