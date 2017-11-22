@@ -97,18 +97,17 @@ void Decoder::Open(std::string url) {
 Decode video thread. Calls SendFrame for every decoded frame
 */
 void Decoder::DecodeVideo() {
+	int error = 0;
+	AVPixelFormat format = AV_PIX_FMT_BGR24;
 	AVPacket* packet = (AVPacket *)av_malloc(sizeof(AVPacket)); // encoded packet
 	AVFrame* pFrame = av_frame_alloc(); // decoded frame
-	AVFrame* pFrameRgb = av_frame_alloc(); // RGB format frame
-	SwsContext *pSwsCtx; // image format conversion context
-
-	AVPixelFormat format = AV_PIX_FMT_RGB24;
-	//int got_picture; // deprecated
-
-	int error = av_image_alloc(pFrameRgb->data, pFrameRgb->linesize, m_pCodecCtx->width, m_pCodecCtx->height, format, 1);
+	AVFrame* pFrameRgb = av_frame_alloc(); // converted RGB format frame
+	error = av_image_alloc(pFrameRgb->data, pFrameRgb->linesize, m_pCodecCtx->width, m_pCodecCtx->height, format, 1);
 	if (error < 0) {
 		AvStrError(error);
 	}
+	
+	SwsContext *pSwsCtx; // image format conversion context
 
 	// format conversion, scaling context
 	pSwsCtx = sws_getContext(
@@ -121,23 +120,19 @@ void Decoder::DecodeVideo() {
 		// read from input into packet
 		error = av_read_frame(m_pFormatCtx, packet);
 		if (error < 0) {
+			if (error == AVERROR_EOF)
+				return;
 			AvStrError(error);
 		}
 
-		// deprecated
-		//error = avcodec_decode_video2(m_pCodecCtx, pFrame, &got_picture, packet);
-		//if (error < 0) {
-		//	AvStrError(error);
-		//	return;
-		//}
-
-		// send in for decoding
-		error = avcodec_send_packet(m_pCodecCtx, packet);
-		if (error == AVERROR_EOF)
-		{
-			break;
+		// send in for decoding only video stream
+		if (packet->stream_index == m_iVideoStreamIndex) {
+			error = avcodec_send_packet(m_pCodecCtx, packet);
+			if (/*error == AVERROR_EOF || */error < 0)
+			{
+				goto clean;
+			}
 		}
-
 		// retrieve decoded frame
 		error = avcodec_receive_frame(m_pCodecCtx, pFrame);
 		if (error == 0) {
@@ -149,10 +144,29 @@ void Decoder::DecodeVideo() {
 			pFrameRgb->height = m_pCodecCtx->height;
 			SendFrame(pFrameRgb);
 		}
+		else if (error == AVERROR_EOF)
+		{
+			goto clean;
+		}
+		else if (error < 0 && error != AVERROR(EAGAIN))
+		{
+			goto clean;
+		}
+
+	clean:
+		if (error < 0)
+			AvStrError(error);
 
 		// free encoded packet
 		av_packet_unref(packet);
 	}
+	
+	// free allocated frames
+	av_freep(&pFrameRgb->data[0]);
+	av_frame_free(&pFrameRgb);
+
+	av_freep(&pFrame->data[0]);
+	av_frame_free(&pFrame);
 }
 
 void Decoder::SendFrame(AVFrame * frame) {
