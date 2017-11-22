@@ -17,7 +17,7 @@ extern "C"
 //extern "C" __stdcall
 #define DllExport   __declspec( dllexport ) 
 
-typedef int(__stdcall* FrameDecodedCallback)(void* data, int* linesize, int width, int height);
+typedef int(__stdcall* FrameDecodedCallback)(void* data, int* linesize, int width, int height, int64_t pts);
 
 namespace FFmpegPlayerNative {
 

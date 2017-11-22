@@ -156,7 +156,7 @@ void Decoder::DecodeVideo() {
 }
 
 void Decoder::SendFrame(AVFrame * frame) {
-	m_cbFrameDecoded(frame->data[0], frame->linesize, frame->width, frame->height);
+	m_cbFrameDecoded(frame->data[0], frame->linesize, frame->width, frame->height, frame->pts);
 }
 
 std::string Decoder::AvStrError(int errnum)

@@ -24,7 +24,7 @@ namespace FFmpegPlayerCLI {
 	public:
 		FFmpegPlayerNative::Decoder* nativeDecoder;
 
-		delegate void FrameDecodedCallback_(IntPtr data, IntPtr linesize, int width, int height);
+		delegate void FrameDecodedCallback_(IntPtr data, IntPtr linesize, int width, int height, Int64 pts);
 
 		FFWrapper();
 
