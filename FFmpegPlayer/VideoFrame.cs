@@ -8,14 +8,26 @@ namespace AdDetectVideoPlayer
 {
     class VideoFrame
     {
-        private uint width;
-        private uint height;
+        private int width;
+        private int height;
         private ImageFormat format;
         private byte[] data;
-        private uint timestamp;
-        private ulong sequence_number;
+        private Int64 timestamp;
+        private long sequence_number;
 
-        VideoFrame(byte[] data, uint width, uint height, uint timestamp, ulong seq_num, 
+        private IntPtr pdata;
+        private IntPtr linesize;
+
+        public VideoFrame(IntPtr pdata, IntPtr linesize, int width, int height, Int64 timestamp)
+        {
+            this.width = width;
+            this.height = height;
+            this.pdata = pdata;
+            this.linesize = linesize;
+            this.timestamp = timestamp;
+        }
+
+        public VideoFrame(byte[] data, int width, int height, Int64 timestamp, long sequence_number, 
             ImageFormat format=ImageFormat.RGB)
         {
             this.width = width;
@@ -23,14 +35,12 @@ namespace AdDetectVideoPlayer
             this.format = format;
             this.data = data;
             this.timestamp = timestamp;
-            this.sequence_number = seq_num;
+            this.sequence_number = sequence_number;
         }
 
-        public uint Width { get => width; }
-
-        public uint Height { get => height; }
-
-        public uint Size { get => width * height; }
+        public int Width { get => width; }
+        public int Height { get => height; }
+        public int Size { get => width * height; }
         /// <summary>
         /// Color format of frame e.g. RGB, BGR, YUV etc
         /// </summary>
@@ -40,10 +50,11 @@ namespace AdDetectVideoPlayer
         /// Image data
         /// </summary>
         public byte[] Data { get => data; }
-        
-        public uint Timestamp { get => timestamp; }
+        public Int64 Timestamp { get => timestamp; }
+        public long SequenceNumber { get => sequence_number; }
 
-        public ulong SequenceNumber { get => sequence_number; }
+        public IntPtr PData { get => pdata; }
+        public IntPtr LineSize { get => linesize; }
 
         public enum ImageFormat
         {
