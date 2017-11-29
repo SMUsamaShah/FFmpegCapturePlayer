@@ -9,15 +9,10 @@
 using namespace System;
 using namespace msclr::interop;
 using namespace System::Runtime::InteropServices;
-using namespace std;
 
 //#pragma comment(lib, "FFmpegPlayerNative.lib")
 
-//delegate void FrameDecodedCallback_(void* data, int* linesize, int width, int height);
-
 namespace FFmpegPlayerCLI {
-
-	//delegate void FrameDecodedCallback_(void* data, int* linesize, int width, int height);
 
 	public ref class FFWrapper
 	{
@@ -25,6 +20,7 @@ namespace FFmpegPlayerCLI {
 		FFmpegPlayerNative::Decoder* nativeDecoder;
 
 		delegate void FrameDecodedCallback_(IntPtr data, IntPtr linesize, int width, int height, Int64 pts);
+		//delegate void FrameDecodedCallback_(array<System::Byte>^ data, IntPtr linesize, int width, int height, Int64 pts);
 
 		FFWrapper();
 

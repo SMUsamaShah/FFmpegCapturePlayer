@@ -9,8 +9,6 @@ extern "C"
 #include "libavutil/imgutils.h"
 }
 
-//#include <mutex>
-//#include <thread>
 #include <string>
 
 //extern "C" __declspec(dllexport)
@@ -44,6 +42,7 @@ namespace FFmpegPlayerNative {
 		AVCodec*                                      m_pVideoCodec;
 		int                                           m_iVideoStreamIndex = -1;
 		int                                           m_iAvgFrameRate;
+		AVPixelFormat                                 m_format;
 
 	};
 }

@@ -19,7 +19,7 @@ namespace FFmpegPlayerCLI {
 	}
 
 	void FFWrapper::Open(System::String^ url) {
-		nativeDecoder->Open(marshal_as<string>(url));
+		nativeDecoder->Open(marshal_as<std::string>(url));
 	}
 
 	void FFWrapper::DecodeThread() {

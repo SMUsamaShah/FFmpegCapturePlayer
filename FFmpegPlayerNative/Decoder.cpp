@@ -12,6 +12,7 @@ namespace FFmpegPlayerNative {
 
 Decoder::Decoder()
 {
+	m_format = AV_PIX_FMT_BGR24;
 	Initialize();
 }
 
@@ -98,11 +99,11 @@ Decode video thread. Calls SendFrame for every decoded frame
 */
 void Decoder::DecodeVideo() {
 	int error = 0;
-	AVPixelFormat format = AV_PIX_FMT_BGR24;
+	
 	AVPacket* packet = (AVPacket *)av_malloc(sizeof(AVPacket)); // encoded packet
 	AVFrame* pFrame = av_frame_alloc(); // decoded frame
 	AVFrame* pFrameRgb = av_frame_alloc(); // converted RGB format frame
-	error = av_image_alloc(pFrameRgb->data, pFrameRgb->linesize, m_pCodecCtx->width, m_pCodecCtx->height, format, 1);
+	error = av_image_alloc(pFrameRgb->data, pFrameRgb->linesize, m_pCodecCtx->width, m_pCodecCtx->height, m_format, 1);
 	if (error < 0) {
 		AvStrError(error);
 	}
@@ -112,7 +113,7 @@ void Decoder::DecodeVideo() {
 	// format conversion, scaling context
 	pSwsCtx = sws_getContext(
 		m_pCodecCtx->width, m_pCodecCtx->height, m_pCodecCtx->pix_fmt,
-		m_pCodecCtx->width, m_pCodecCtx->height, format, 
+		m_pCodecCtx->width, m_pCodecCtx->height, m_format, 
 		SWS_BICUBIC, nullptr, nullptr, nullptr);
 
 	// decode and get frames
@@ -169,8 +170,19 @@ void Decoder::DecodeVideo() {
 	av_frame_free(&pFrame);
 }
 
-void Decoder::SendFrame(AVFrame * frame) {
+void Decoder::SendFrame(AVFrame * frame) 
+{
+#if 0
+	int bufsize = av_image_get_buffer_size(m_format, frame->width, frame->height, 1);
+	uint8_t* buffer = new uint8_t[bufsize];
+
+	av_image_copy_to_buffer(buffer, bufsize, frame->data, frame->linesize, m_format, frame->width, frame->height, 1);
+	m_cbFrameDecoded(buffer, frame->linesize, frame->width, frame->height, frame->pts);
+
+	delete[] buffer;
+#else
 	m_cbFrameDecoded(frame->data[0], frame->linesize, frame->width, frame->height, frame->pts);
+#endif
 }
 
 std::string Decoder::AvStrError(int errnum)
