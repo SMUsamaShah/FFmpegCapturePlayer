@@ -139,6 +139,7 @@ void Decoder::DecodeVideo() {
 		}
 		// retrieve decoded frame
 		error = avcodec_receive_frame(m_pCodecCtx, pFrame);
+		//SendFrame(pFrame); // send unconverted frame
 		if (error == 0) {
 			// convert to given format (rgb)
 			int rows = sws_scale(pSwsCtx, pFrame->data, pFrame->linesize, 0, 
@@ -173,9 +174,27 @@ void Decoder::DecodeVideo() {
 	av_freep(&pFrame->data[0]);
 	av_frame_free(&pFrame);
 }
-
+static int n = 0;
 void Decoder::SendFrame(AVFrame * frame) 
 {
+	// 1000 decoded non-converted frames (YUV) ~= 440MB
+	// 1000 decoded and converted frames (RGB) ~= 810MB
+
+	/*uint8_t* buffer;
+	int bufsize;
+	CopyFrameToBuffer(&buffer, &bufsize, frame);
+	m_cbFrameDecoded(buffer, frame->linesize, frame->width, frame->height, frame->pts);
+	delete[] buffer;*/
+
+#if 0
+	if (n++ > 1000) // to test memory usage by 1000 decoded frames
+		return;
+
+	uint8_t* buffer;
+	int bufsize;
+	CopyFrameToBuffer(&buffer, &bufsize, frame);
+#endif
+
 #if 0
 	int bufsize = av_image_get_buffer_size(m_format, frame->width, frame->height, 1);
 	uint8_t* buffer = new uint8_t[bufsize];
@@ -187,6 +206,32 @@ void Decoder::SendFrame(AVFrame * frame)
 #else
 	m_cbFrameDecoded(frame->data[0], frame->linesize, frame->width, frame->height, frame->pts);
 #endif
+}
+
+void Decoder::CopyFrame(AVFrame *dstFrame, AVFrame *srcFrame) {
+	AVFrame *copyFrame = av_frame_alloc();
+	copyFrame->format = srcFrame->format;
+	copyFrame->width = srcFrame->width;
+	copyFrame->height = srcFrame->height;
+	copyFrame->channels = srcFrame->channels;
+	copyFrame->channel_layout = srcFrame->channel_layout;
+	copyFrame->nb_samples = srcFrame->nb_samples;
+
+	av_frame_get_buffer(copyFrame, 32);
+	av_frame_copy(copyFrame, srcFrame);
+	av_frame_copy_props(copyFrame, srcFrame);
+}
+
+void Decoder::CopyFrameToBuffer(uint8_t** dstBuffer, int* dstbufsize, AVFrame *srcFrame) {
+	int bufsize = av_image_get_buffer_size((AVPixelFormat)srcFrame->format,
+		srcFrame->width, srcFrame->height, 32);
+	uint8_t* buffer = new uint8_t[bufsize];
+
+	av_image_copy_to_buffer(buffer, bufsize, srcFrame->data, srcFrame->linesize,
+		(AVPixelFormat)srcFrame->format, srcFrame->width, srcFrame->height, 32);
+
+	*dstbufsize = bufsize;
+	*dstBuffer = buffer;
 }
 
 std::string Decoder::AvStrError(int errnum)

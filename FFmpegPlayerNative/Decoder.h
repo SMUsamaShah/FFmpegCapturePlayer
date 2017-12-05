@@ -25,24 +25,27 @@ namespace FFmpegPlayerNative {
 		Decoder();
 		~Decoder();
 
-		void                                          Initialize();
-		void                                          Open(std::string url);
-		void                                          SendFrame(AVFrame * frame);
-		void                                          DecodeVideo();
-		void                                          SetCallback(FrameDecodedCallback aCallback);
+		void                                 Initialize();
+		void                                 Open(std::string url);
+		void                                 SendFrame(AVFrame * frame);
+		void                                 DecodeVideo();
+		void                                 SetCallback(FrameDecodedCallback aCallback);
 
-		static FrameDecodedCallback                   m_cbFrameDecoded;
+		void                                 CopyFrame(AVFrame *dstFrame, AVFrame *srcFrame);
+		void                                 CopyFrameToBuffer(uint8_t** dstBuffer, int* dstbufsize, AVFrame* scrFrame);
+
+		static FrameDecodedCallback          m_cbFrameDecoded;
 
 	private:
-		std::string                                   AvStrError(int errnum);
+		std::string                          AvStrError(int errnum);
 
-		bool                                          m_bInitialized;
-		AVFormatContext*                              m_pFormatCtx;
-		AVCodecContext*                               m_pCodecCtx;
-		AVCodec*                                      m_pVideoCodec;
-		int                                           m_iVideoStreamIndex = -1;
-		int                                           m_iAvgFrameRate;
-		AVPixelFormat                                 m_format;
+		bool                                 m_bInitialized;
+		AVFormatContext*                     m_pFormatCtx;
+		AVCodecContext*                      m_pCodecCtx;
+		AVCodec*                             m_pVideoCodec;
+		int                                  m_iVideoStreamIndex = -1;
+		int                                  m_iAvgFrameRate;
+		AVPixelFormat                        m_format;
 
 	};
 }
