@@ -22,7 +22,7 @@ namespace FFmpegPlayerCLI {
 		nativeDecoder->Open(marshal_as<std::string>(url));
 	}
 
-	void FFWrapper::DecodeThread() {
+	void FFWrapper::DecodeLoop() {
 		nativeDecoder->DecodeVideo();
 	}
 }

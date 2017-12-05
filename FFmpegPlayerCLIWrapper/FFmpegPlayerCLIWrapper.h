@@ -30,6 +30,6 @@ namespace FFmpegPlayerCLI {
 
 		void Open(System::String^ url);
 
-		void DecodeThread();
+		void DecodeLoop();
 	};
 }
