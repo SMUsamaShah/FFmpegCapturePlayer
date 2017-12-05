@@ -134,15 +134,19 @@ void Decoder::DecodeVideo() {
 				goto clean;
 			}
 		}
+		else {
+			continue;
+		}
 		// retrieve decoded frame
 		error = avcodec_receive_frame(m_pCodecCtx, pFrame);
 		if (error == 0) {
-			// convert to given format
+			// convert to given format (rgb)
 			int rows = sws_scale(pSwsCtx, pFrame->data, pFrame->linesize, 0, 
 				m_pCodecCtx->height, pFrameRgb->data, pFrameRgb->linesize);
 
-			pFrameRgb->width = m_pCodecCtx->width;
-			pFrameRgb->height = m_pCodecCtx->height;
+			pFrameRgb->width = pFrame->width;
+			pFrameRgb->height = pFrame->height;
+			pFrameRgb->pts = pFrame->pts;
 			SendFrame(pFrameRgb);
 		}
 		else if (error == AVERROR_EOF)
