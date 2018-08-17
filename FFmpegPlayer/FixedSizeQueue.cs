@@ -47,7 +47,7 @@ namespace AdDetectVideoPlayer
             }
         }
 
-        private void RemoveOldest()
+        protected void RemoveOldest()
         {
             lock (_lockObject)
             {
@@ -137,7 +137,7 @@ namespace AdDetectVideoPlayer
         }
     }
 
-    class VideoFrameViewerQueue : FixedSizeQueue<Components.VideoFrameViewer>
+    class VideoFrameViewerQueue : FixedSizeQueue<Components.FrameViewer>
     {
         public VideoFrameViewerQueue(int size) : base(size)
         {

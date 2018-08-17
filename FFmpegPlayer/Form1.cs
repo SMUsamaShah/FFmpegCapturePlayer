@@ -13,7 +13,6 @@ namespace AdDetectVideoPlayer
 {
     public partial class Form1 : Form
     {
-        private IMediaPlayer mediaController;
         private VideoPlayer videoPlayer;
         private VideoDecoder decoder;
         private int QUEUE_SIZE = 300;
@@ -29,7 +28,6 @@ namespace AdDetectVideoPlayer
             videoPlayer = new VideoPlayer(
                 vframeViewer: pictureBoxVideo,
                 selectedVFrameViewer: selectedFrameViewer,
-                selectedFrameInfo: label1,
                 thumbnailsContainer: thumbPanel
             );
             videoPlayer.SetSourceQueue(vframeQueue);
@@ -37,17 +35,17 @@ namespace AdDetectVideoPlayer
             videoPlayer.ScrollBar = queueScroller;
 
             videoPlayer.Init();
-
-
-            //mediaController = new MediaController();
         }
 
         private void btnPlay_Click(object sender, EventArgs e)
         {
             decoder.SetInputUrl(@textBoxPath.Text);
-            decoder.Open();
+            bool success = decoder.Open();
+            if (!success)
+                return;
+
             decoder.StartDecodeThread();
-            videoPlayer.StartPlaying();
+            videoPlayer.Play();
             //mediaController.Input(@textBoxPath.Text);
             //mediaController.Play();
         }
@@ -60,11 +58,6 @@ namespace AdDetectVideoPlayer
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             //mediaController.Stop();
-        }
-
-        private void btnForward_Click(object sender, EventArgs e)
-        {
-            videoPlayer.Seek(2); // move 2 seconds forward
         }
     }
 }

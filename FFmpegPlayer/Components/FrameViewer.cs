@@ -19,6 +19,8 @@ namespace AdDetectVideoPlayer.Components
 
         public event EventHandler Click;
 
+        public const string InfoFormat = "Index: {0}, Timestamp: {1}";
+
         public FrameViewer()
         {
             InitializeComponent();
@@ -31,7 +33,7 @@ namespace AdDetectVideoPlayer.Components
                 pictureBox.Image = vframe.Bitmap;
 
                 label1.Text = String.Format(
-                    "Index: {0}, Timestamp: {1}",
+                    InfoFormat,
                     vframe.SequenceNumber,
                     vframe.Timestamp);
             });
@@ -44,7 +46,7 @@ namespace AdDetectVideoPlayer.Components
                 pictureBox.Image = vframe.Bitmap;
 
                 label1.Text = String.Format(
-                    "Index: {0}, Timestamp: {1}",
+                    InfoFormat,
                     vframe.SequenceNumber,
                     vframe.Timestamp);
             });

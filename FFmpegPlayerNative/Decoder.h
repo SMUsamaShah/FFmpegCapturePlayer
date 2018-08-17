@@ -15,7 +15,7 @@ extern "C"
 //extern "C" __stdcall
 #define DllExport   __declspec( dllexport ) 
 
-typedef int(__stdcall* FrameDecodedCallback)(void* data, int* linesize, int width, int height, int64_t pts);
+typedef int(__stdcall* FrameDecodedCallback)(void* data, int size, int width, int height, int64_t pts, int format);
 
 namespace FFmpegPlayerNative {
 
@@ -25,16 +25,19 @@ namespace FFmpegPlayerNative {
 		Decoder();
 		~Decoder();
 
+		Decoder(int format);
 		void                                 Initialize();
-		void                                 Open(std::string url);
+		//void                                 Open(std::string url);
+		std::string                          Open(std::string url);
 		void                                 SendFrame(AVFrame * frame);
 		void                                 DecodeVideo();
 		void                                 SetCallback(FrameDecodedCallback aCallback);
 
 		void                                 CopyFrame(AVFrame *dstFrame, AVFrame *srcFrame);
-		void                                 CopyFrameToBuffer(uint8_t** dstBuffer, int* dstbufsize, AVFrame* scrFrame);
+		int                                  CopyFrameToBuffer(uint8_t** dstBuffer, int* dstbufsize, AVFrame* scrFrame);
 
-		static FrameDecodedCallback          m_cbFrameDecoded;
+		//static FrameDecodedCallback          m_cbFrameDecoded;
+		FrameDecodedCallback                 m_cbFrameDecoded;
 
 	private:
 		std::string                          AvStrError(int errnum);
@@ -45,8 +48,8 @@ namespace FFmpegPlayerNative {
 		AVCodec*                             m_pVideoCodec;
 		int                                  m_iVideoStreamIndex = -1;
 		int                                  m_iAvgFrameRate;
-		AVPixelFormat                        m_format;
 
+		AVPixelFormat                        m_convFormat; // format to convert to
 	};
 }
 

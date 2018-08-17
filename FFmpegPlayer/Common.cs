@@ -9,14 +9,44 @@ namespace AdDetectVideoPlayer
 {
     static class Common
     {
-        public static void InvokeUI(Control ctrl, Action action)
+        /// <summary>
+        /// Extension method to update UI element on the UI thread.
+        /// </summary>
+        /// <param name="ctrl"></param>
+        /// <param name="action"></param>
+        public static void InvokeUI(this Control ctrl, Action action)
         {
             if (ctrl.InvokeRequired)
             {
-                ctrl.Invoke((MethodInvoker)delegate { InvokeUI(ctrl, action); });
+                ctrl.Invoke(action);
                 return;
             }
-            action();
+            action.Invoke();
+        }
+
+        public static void RunOnUI(this Control ctrl, Action action)
+        {
+            if (ctrl.InvokeRequired)
+            {
+                ctrl.BeginInvoke(action);
+                return;
+            }
+            action.Invoke();
+        }
+
+        public static void AddControlToPanel(Panel panel, Control ctrl)
+        {
+            InvokeUI(panel, () => { panel.Controls.Add(ctrl); });
+        }
+
+        public static void RemoveControlFromPanel(Panel panel, int index)
+        {
+            InvokeUI(panel, () => { panel.Controls.RemoveAt(index); });
+        }
+
+        public static void RemoveControlFromPanel(Panel panel, Control ctrl)
+        {
+            InvokeUI(panel, () => { panel.Controls.Remove(ctrl); });
         }
     }
 }

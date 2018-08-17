@@ -20,16 +20,13 @@ namespace AdDetectVideoPlayer
     class VideoPlayer
     {
         // picturebox which continously displays next frame from queue
-        private VideoFrameViewer videoBox;
+        private FrameViewer videoBox;
         // picturebox which shows currently selected frame by user
-        private VideoFrameViewer selectionViewer;
+        private FrameViewer selectionViewer;
         // selected thumbnail
-        private VideoFrameViewer currentThumbnail;
-        // selected frame info
-        private Label info;
-        // panel which contains thumbnails (VideoFrameViewer)
+        private FrameViewer currentThumbnail;
+        // panel which contains thumbnails (FrameViewer)
         private FlowLayoutPanel panel;
-        public FlowLayoutPanel Container { get => panel; }
 
         // Video frame data source
         private VideoFrameQueue vframeQueue = null;
@@ -39,55 +36,55 @@ namespace AdDetectVideoPlayer
         private bool stop = false;
         private const int PLAY_FPS = 30;
         private const int THUMB_COUNT = 10;
-        private long current_playing_frame = 0;
+        
+        private System.Drawing.Size THUMBNAIL_SIZE = new System.Drawing.Size(100, 120);
         private State current_state = State.STOPPED;
-        public HScrollBar ScrollBar { set; get; }
 
-        private System.Drawing.Size THUMBNAIL_SIZE = new System.Drawing.Size(80, 80);
+        public HScrollBar ScrollBar { set; get; }
+        public FlowLayoutPanel Container { get => panel; }
 
         public VideoPlayer(
-            VideoFrameViewer vframeViewer,
-            VideoFrameViewer selectedVFrameViewer,
-            Label selectedFrameInfo,
+            FrameViewer vframeViewer,
+            FrameViewer selectedVFrameViewer,
             FlowLayoutPanel thumbnailsContainer)
         {
             this.videoBox = vframeViewer;
             this.selectionViewer = selectedVFrameViewer;
-            this.info = selectedFrameInfo;
             this.panel = thumbnailsContainer;
-
-
-            //Init();
         }
 
         public void Init()
         {
+            // add thumbnails in the panel, these will be populated later
             for (int i = 0; i < THUMB_COUNT; ++i)
             {
-                var vframeViewer = new VideoFrameViewer();
-                vframeViewer.SizeMode = PictureBoxSizeMode.StretchImage;
+                var vframeViewer = new FrameViewer();
                 vframeViewer.Size = THUMBNAIL_SIZE;
                 vframeViewer.Click += VframeViewer_Click;
-                AddControlToPanel(panel, vframeViewer);
+                panel.InvokeUI(() => { panel.Controls.Add(vframeViewer); });
             }
 
             ScrollBar.Value = 0;
             ScrollBar.Maximum = vframeQueue.MaxSize - THUMB_COUNT;
 
-            //ScrollBar.ValueChanged += ScrollBar_ValueChanged;
             ScrollBar.Scroll += ScrollBar_Scroll;
         }
 
         private void ScrollBar_Scroll(object sender, ScrollEventArgs e)
         {
-            //var scroll = sender as HScrollBar;
+            // e.Type contains different types of events from scrollbar
+
             // populate thumbnails from queue
-            for (int i = 0; i < THUMB_COUNT; ++i)
-            {
-                var vf = vframeQueue.Get(i + e.NewValue);
-                if(vf != null)
-                    ((VideoFrameViewer)panel.Controls[i]).SetVideoFrame(vf);
-            }
+            panel.InvokeUI(() => {
+                for (int i = 0; i < THUMB_COUNT; ++i)
+                {
+                    var vf = vframeQueue.Get(i + e.NewValue);
+                    if (vf != null)
+                    {
+                        ((FrameViewer)panel.Controls[i]).SetVideoFrame(vf);
+                    }
+                }
+            });
         }
 
         public void SetSourceQueue(VideoFrameQueue queue)
@@ -98,54 +95,28 @@ namespace AdDetectVideoPlayer
             queue.OnItemRemoved += OnVframeRemoved;
         }
 
-        private void OnVframeAdded(object sender, EventArgs e)
-        {
-            var vframe = sender as VideoFrame;
-
-            var vframeViewer = new VideoFrameViewer(vframe);
-            vframeViewer.SizeMode = PictureBoxSizeMode.StretchImage;
-            vframeViewer.Size = THUMBNAIL_SIZE;
-
-            vframeViewer.Click += VframeViewer_Click;
-
-            //AddControlToPanel(panel, vframeViewer);
-        }
-
         private void VframeViewer_Click(object sender, EventArgs e)
         {
-            var viewer = sender as VideoFrameViewer;
+            var viewer = sender as FrameViewer;
             Select(viewer);
         }
 
+        private void OnVframeAdded(object sender, EventArgs e)
+        {
+            
+        }
+        static int n=0;
         private void OnVframeRemoved(object sender, EventArgs e)
         {
-            //RemoveControlFromPanel(panel, 0);
+            /*if(n++ == 30)
+            {
+                n = 0;
+                GC.Collect();
+            }*/
+
             if (ScrollBar.Value > 0)
             {
-                Common.InvokeUI(ScrollBar, () => { ScrollBar.Value--; });
-            }
-        }
-
-        private void AddControlToPanel(Panel panel, Control ctrl)
-        {
-            Common.InvokeUI(panel, () => { panel.Controls.Add(ctrl); });
-        }
-
-        private void RemoveControlFromPanel(Panel panel, int index)
-        {
-            Common.InvokeUI(panel, () => { panel.Controls.RemoveAt(index); });
-        }
-
-        private void RemoveControlFromPanel(Panel panel, Control ctrl)
-        {
-            Common.InvokeUI(panel, () => { panel.Controls.Remove(ctrl); });
-        }
-
-        public void Render(VideoFrame vframe)
-        {
-            if (vframe != null && vframe.Format == VideoFrame.ImageFormat.RGB)
-            {
-                videoBox.SetVideoFrame(vframe);
+                ScrollBar.InvokeUI(() => { ScrollBar.Value--; });
             }
         }
 
@@ -159,21 +130,14 @@ namespace AdDetectVideoPlayer
 
         }
 
-        private void Select(VideoFrameViewer selectedThumbnail)
+        private void Select(FrameViewer selectedThumbnail)
         {
-            //reset previous selection
-            if(this.currentThumbnail != null)
-                this.currentThumbnail.BorderStyle = BorderStyle.None;
-
             //
-            selectedThumbnail.BorderStyle = BorderStyle.Fixed3D;
             selectionViewer.SetVideoFrame(selectedThumbnail.VideoFrame);
-            info.Text = selectedThumbnail.VideoFrame.SequenceNumber + "-" + selectedThumbnail.VideoFrame.Timestamp;
 
             this.currentThumbnail = selectedThumbnail;
         }
-
-
+        
         public void Play()
         {
             switch (current_state)
@@ -193,7 +157,6 @@ namespace AdDetectVideoPlayer
                             var vframe = vframeQueue.Get(vframeQueue.Count - 1);//vframeQueue.Next();
                             if (vframe != null)
                             {
-                                current_playing_frame = vframe.SequenceNumber;
                                 videoBox.SetVideoFrame(vframe);
                             }
 
@@ -202,17 +165,17 @@ namespace AdDetectVideoPlayer
                         }
                     });
                     playerThread.Start();
-                    
+
 
                     break;
                 case State.PAUSED:
+                    current_state = State.PLAYING;
 
                     break;
                 case State.PLAYING:
                     Stop();
                     break;
             }
-
         }
 
         public void Pause()
@@ -231,10 +194,7 @@ namespace AdDetectVideoPlayer
 
         public void Seek(int seconds)
         {
-            //currentThumbnail = ((VideoFrameViewer)panel.Controls[selected]);
-            //Select(currentThumbnail);
-
-            //selected = selected + seconds * 30;
+            
         }
 
         enum State
