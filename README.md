@@ -1,4 +1,6 @@
 # FFmpegCapturePlayer
+[![HitCount](http://hits.dwyl.io/smusamashah/FFmpegCapturePlayer.svg)](http://hits.dwyl.io/smusamashah/FFmpegCapturePlayer)
+
 
 A WIP FFmpeg based video only player which can be used to mark frames in a video and do further processing. Currently it can be used to collect key frames at a given threshold, can do some filtering.
 
